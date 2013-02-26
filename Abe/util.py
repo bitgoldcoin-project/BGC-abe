@@ -5,6 +5,7 @@
 import re
 import base58
 import Crypto.Hash.SHA256 as SHA256
+from ltc_scrypt import getPoWHash
 
 try:
     import Crypto.Hash.RIPEMD160 as RIPEMD160
@@ -35,6 +36,9 @@ def short_hex(bytes):
 
 def double_sha256(s):
     return SHA256.new(SHA256.new(s).digest()).digest()
+
+def scrypt(s):
+    return getPoWHash(s)
 
 # Based on CBlock::BuildMerkleTree().
 def merkle(hashes):
