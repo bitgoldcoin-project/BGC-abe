@@ -40,7 +40,6 @@ CONFIG_DEFAULTS = {
     "binary_type":        None,
     "int_type":           None,
     "upgrade":            None,
-    "rescan":             None,
     "commit_bytes":       None,
     "log_sql":            None,
     "datadir":            None,
@@ -169,10 +168,6 @@ class DataStore(object):
                 % (store.config['schema_version'], SCHEMA_VERSION))
 
         store._set_sql_flavour()
-
-        if args.rescan:
-            store.sql("UPDATE datadir SET blkfile_number=1, blkfile_offset=0")
-
         store._init_datadirs()
         store.no_bit8_chain_ids = store._find_no_bit8_chain_ids(
             args.ignore_bit8_chains)
@@ -2152,7 +2147,7 @@ store._ddl['txout_approx'],
 
         return tx_id
 
-    def export_tx(store, tx_id=None, tx_hash=None, decimals=8):
+    def export_tx(store, tx_id=None, tx_hash=None, decimals=6):
         """Return a dict as seen by /rawtx or None if not found."""
 
         tx = {}
@@ -2552,7 +2547,7 @@ store._ddl['txout_approx'],
                 break
             end = ds.read_cursor + length
 
-            hash = util.double_sha256(
+            hash = util.scrypt(
                 ds.input[ds.read_cursor : ds.read_cursor + 80])
             # XXX should decode target and check hash against it to
             # avoid loading garbage data.  But not for merged-mined or
