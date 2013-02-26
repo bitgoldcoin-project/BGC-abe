@@ -686,7 +686,7 @@ class Abe:
                 gen = block_out - block_in
                 fees = tx['total_out'] - gen
                 body += ['Generation: ', format_satoshis(gen, chain),
-                         ' + ', format_satoshis(fees, chain), ' total fees destroyed']
+                         ' (', format_satoshis(fees, chain), ' total fees destroyed)']
             else:
                 for txin in tx['in']:
                     body += hash_to_address_link(
@@ -697,7 +697,10 @@ class Abe:
             for txout in tx['out']:
                 body += hash_to_address_link(
                     address_version, txout['pubkey_hash'], page['dotdot'])
-                body += [': ', format_satoshis(txout['value'], chain), '<br />']
+                if is_coinbase:
+                    body += [': ', format_satoshis(txout['value'] - fees, chain), '<br />']
+                else:
+                    body += [': ', format_satoshis(txout['value'], chain), '<br />']
             body += ['</td></tr>\n']
         body += '</table>\n'
 
