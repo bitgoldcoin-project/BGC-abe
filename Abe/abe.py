@@ -686,7 +686,7 @@ class Abe:
                 gen = block_out - block_in
                 fees = tx['total_out'] - gen
                 body += ['Generation: ', format_satoshis(gen, chain),
-                         ' + ', format_satoshis(fees, chain), ' total fees']
+                         ' + ', format_satoshis(fees, chain), ' total fees destroyed']
             else:
                 for txin in tx['in']:
                     body += hash_to_address_link(
