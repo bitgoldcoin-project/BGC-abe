@@ -83,7 +83,7 @@ DEFAULT_TEMPLATE = """
 DEFAULT_LOG_FORMAT = "%(message)s"
 
 # XXX This should probably be a property of chain, or even a query param.
-LOG10COIN = 8
+LOG10COIN = 6
 COIN = 10 ** LOG10COIN
 
 # It is fun to change "6" to "3" and search lots of addresses.
