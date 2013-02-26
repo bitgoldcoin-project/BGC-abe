@@ -471,8 +471,11 @@ class Abe:
             if seconds <= 0:
                 percent_destroyed = '&nbsp;'
             else:
-                percent_destroyed = '%5g' % (
-                    100.0 - (100.0 * ss / total_ss)) + '%'
+                try:
+                    percent_destroyed = '%5g' % (
+                        100.0 - (100.0 * ss / total_ss)) + '%'
+                except:
+                    percent_destroyed = '0%'
 
             body += [
                 '<tr><td><a href="', page['dotdot'], 'block/',
