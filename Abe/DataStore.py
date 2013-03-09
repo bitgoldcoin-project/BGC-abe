@@ -84,6 +84,9 @@ SCRIPT_ADDRESS_RE = re.compile("\x76\xa9\x14(.{20})\x88\xac\x61?\\Z", re.DOTALL)
 # Regex to match a pubkey ("IP address transaction") in txout_scriptPubKey.
 SCRIPT_PUBKEY_RE = re.compile("\x41(.{65})\xac\\Z", re.DOTALL)
 
+# Regex to match a compressed pubkey ("IP address transaction") in txout_scriptPubKey.
+SCRIPT_COMPRESSED_PUBKEY_RE = re.compile("\x21(.{33})\xac\\Z", re.DOTALL)
+
 # Script that can never be redeemed, used in Namecoin.
 SCRIPT_NETWORK_FEE = '\x6a'
 
@@ -2360,7 +2363,7 @@ store._ddl['txout_approx'],
         match = SCRIPT_ADDRESS_RE.match(script)
         if match:
             return store.pubkey_hash_to_id(match.group(1))
-        match = SCRIPT_PUBKEY_RE.match(script)
+        match = SCRIPT_PUBKEY_RE.match(script) or SCRIPT_COMPRESSED_PUBKEY_RE.match(script)
         if match:
             return store.pubkey_to_id(match.group(1))
 
