@@ -670,23 +670,41 @@ class Abe:
         body += ['<table><tr><th>Transaction</th><th>Fee</th>'
                  '<th>Size (kB)</th><th>From (amount)</th><th>To (amount)</th>'
                  '</tr>\n']
+
+        txnum = 0
+        posgen = 0
+
         for tx_id in tx_ids:
+            txnum += 1
             tx = txs[tx_id]
             is_coinbase = (tx_id == tx_ids[0])
+            fees = tx['total_in'] - tx['total_out']
             if is_coinbase:
                 fees = 0
-            else:
-                fees = tx['total_in'] - tx['total_out']
+            if txnum == 2 and block_hash[:4] > '0000':
+                posgen = abs(fees)
+                fees = 0
+
+
             body += ['<tr><td><a href="../tx/' + tx['hash'] + '">',
                      tx['hash'][:10], '...</a>'
                      '</td><td>', format_satoshis(fees, chain),
                      '</td><td>', tx['size'] / 1000.0,
                      '</td><td>']
             if is_coinbase:
-                gen = block_out - block_in
-                fees = tx['total_out'] - gen
-                body += ['Generation: ', format_satoshis(gen, chain),
-                         ' (', format_satoshis(fees, chain), ' total fees destroyed)']
+               pgen = 0
+               gen = tx['total_out'] - tx['total_in']
+
+               if block_hash[:4] > '0000':
+                  body += [' Total']
+               else:
+                   gen = format_satoshis(gen, chain)
+                   fees = format_satoshis(fees, chain)
+                   body += ['Generation: ', gen , ' Total']
+                   page['h1'] = ['<a href="', page['dotdot'], 'chain/',
+                                 escape('NovaCoin'), '?hi=', height, '">',
+                                 escape('NovaCoin'), '</a> ', height,'<br />','<FONT SIZE="-1">Proof of Work</FONT>',
+                                 '<br />\n','<FONT SIZE="-1">', gen,' Coins generated </FONT>']
             else:
                 for txin in tx['in']:
                     body += hash_to_address_link(
@@ -695,13 +713,25 @@ class Abe:
                              '<br />']
             body += ['</td><td>']
             for txout in tx['out']:
-                body += hash_to_address_link(
-                    address_version, txout['pubkey_hash'], page['dotdot'])
-                if is_coinbase:
-                    body += [': ', format_satoshis(txout['value'] - fees, chain), '<br />']
-                else:
-                    body += [': ', format_satoshis(txout['value'], chain), '<br />']
+
+              if txout['value'] > 0:
+                  body += hash_to_address_link(
+                  address_version, txout['pubkey_hash'], page['dotdot'])
+                  body += [': ', format_satoshis(txout['value'], chain), '<br />']
+              else:
+                   if txnum ==1:
+                        body += 'Generated coins are sent in the next transaction'
             body += ['</td></tr>\n']
+        if block_hash[:4] > '0000':
+               posgen = format_satoshis(posgen,chain)
+               txt ='POS Generation: ' + posgen
+               pos = body.index(' Total')
+               body.insert(pos,txt)
+               page['h1'] = ['<a href="', page['dotdot'], 'chain/',
+                             escape('NovaCoin'), '?hi=', height, '">',
+                             escape('NovaCoin'), '</a> ', height,'<br />','<FONT COLOR="FF0000"><FONT SIZE="-1">Proof of Stake</FONT></FONT>',
+                             '<br />\n','<FONT SIZE="-1">',posgen, ' Coins generated</FONT>','\n']
+
         body += '</table>\n'
 
     def handle_block(abe, page):
