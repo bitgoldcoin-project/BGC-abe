@@ -14,8 +14,8 @@ sudo apt-get install mysql-client mysql-server python-mysqldb python-crypto
 mysql -u root -p
 
 create database abe;
-CREATE USER '<USERNAME>'@'localhost' IDENTIFIED BY '<PASSWORD>';
-grant all on abe.* to <USERNAME>;
+CREATE USER '%USERNAME%'@'localhost' IDENTIFIED BY '%PASSWORD%';
+grant all on abe.* to %USERNAME%;
 quit
 
 3. Install Scrypt Crypto Module
