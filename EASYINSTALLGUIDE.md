@@ -49,18 +49,18 @@ default-loader = blkfile
 dbtype MySQLdb
 
 connect-args {"user":"%USERNAME%","db":"abe","passwd":"%PASSWORD%"}
-#Change to YOUR DB ACCOUNT 
+(Change to YOUR DB ACCOUNT)
 
 upgrade
 
 port 12345
-#Change Port
+(Change Port)
 
 host 127.0.0.1 
-#Change IP
+(Change IP)
 
 datadir = /home/%USERNAME%/.bitgoldcoin 
-#Add your Unix Account Name
+(Add your Unix Account Name)
 
 
 6. Connect from Your Internet Browser
