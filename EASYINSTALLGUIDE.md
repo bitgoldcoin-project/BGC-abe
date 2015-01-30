@@ -30,18 +30,7 @@ cd litecoin_scrypt
 
 sudo python setup.py install
 
-
-4. Install & Run 
-------------------
-
-sudo python setup.py install
-
-(At First Time)
-python -m Abe.abe --config abe-bgc.conf --commit-bytes 100000 --no-serve 
-
-python -m Abe.abe --config abe-bgc.conf
-
-5. Modify some field in abe-bgc.conf
+4. Modify some field in abe-bgc.conf
 -------------------------------------
 
 default-loader = blkfile
@@ -61,6 +50,16 @@ host 127.0.0.1
 
 datadir = /home/%USERNAME%/.bitgoldcoin 
 (Add your Unix Account Name)
+
+5. Install & Run 
+------------------
+
+sudo python setup.py install
+
+(At First Time)
+python -m Abe.abe --config abe-bgc.conf --commit-bytes 100000 --no-serve 
+
+python -m Abe.abe --config abe-bgc.conf
 
 
 6. Connect from Your Internet Browser
