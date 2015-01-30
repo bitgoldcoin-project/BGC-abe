@@ -8,7 +8,7 @@ Easy Guide "How to Install ABE For BGC"
 sudo apt-get install mysql-client mysql-server python-mysqldb python-crypto
 
 
-2. Table & User Create
+2. Create Table & User 
 ------------------------
 
 mysql -u root -p
