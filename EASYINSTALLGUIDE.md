@@ -25,7 +25,9 @@ quit
 ------------------------------------
 
 apt-get install python-all-dev
+
 cd litecoin_scrypt
+
 python setup.py install
 
 
