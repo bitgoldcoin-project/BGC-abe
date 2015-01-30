@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright(C) 2011,2012 by John Tobey <John.Tobey@gmail.com>
+# Copyright(C) 2011,2012,2013,2014 by Abe developers.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -34,7 +34,7 @@ def run_upgrades_locked(store, upgrades):
                     "UPDATE configvar SET configvar_value = ?"
                     " WHERE configvar_name = 'schema_version'",
                     (sv,))
-                if store.cursor.rowcount != 1:
+                if store.rowcount() != 1:
                     raise Exception("Failed to update schema_version");
             else:
                 store.sql(
@@ -98,7 +98,7 @@ def create_block_txin(store):
 def index_block_tx_tx(store):
     try:
         store.sql("DROP INDEX x_block_tx_tx")
-    except:
+    except Exception:
         store.rollback()
     store.sql("CREATE INDEX x_block_tx_tx ON block_tx (tx_id)")
 
@@ -110,6 +110,7 @@ def init_block_txin(store):
     seen = set()
 
     store.log.info("...loading existing keys")
+    # XXX store.conn and store.sql_transform no longer exist.
     cur = store.conn.cursor()
     cur.execute(store.sql_transform("""
         SELECT block_id, txin_id FROM block_txin"""))
@@ -207,11 +208,12 @@ def init_block_totals(store):
 
 def init_satoshi_seconds_destroyed(store):
     store.log.info("Calculating satoshi-seconds destroyed.")
-    cur = store.conn.cursor()
     count = 0
     step = 100
     start = 1
     stop = int(store.selectrow("SELECT MAX(block_id) FROM block_tx")[0])
+    # XXX store.conn and store.sql_transform no longer exist.
+    cur = store.conn.cursor()
     while start <= stop:
         cur.execute(store.sql_transform("""
             SELECT bt.block_id, bt.tx_id,
@@ -241,6 +243,7 @@ def init_satoshi_seconds_destroyed(store):
 
 def set_0_satoshi_seconds_destroyed(store):
     store.log.info("Setting NULL to 0 in satoshi_seconds_destroyed.")
+    # XXX store.conn and store.sql_transform no longer exist.
     cur = store.conn.cursor()
     cur.execute(store.sql_transform("""
         SELECT bt.block_id, bt.tx_id
@@ -255,6 +258,7 @@ def set_0_satoshi_seconds_destroyed(store):
 
 def init_block_satoshi_seconds(store, ):
     store.log.info("Calculating satoshi-seconds.")
+    # XXX store.conn and store.sql_transform no longer exist.
     cur = store.conn.cursor()
     stats = {}
     cur.execute(store.sql_transform("""
@@ -313,21 +317,46 @@ def index_block_nTime(store):
 
 def replace_chain_summary(store):
     store.sql("DROP VIEW chain_summary")
-    store.sql(store.get_ddl('chain_summary'))
+    store.sql("""
+        CREATE VIEW chain_summary AS SELECT
+            cc.chain_id,
+            cc.in_longest,
+            b.block_id,
+            b.block_hash,
+            b.block_version,
+            b.block_hashMerkleRoot,
+            b.block_nTime,
+            b.block_nBits,
+            b.block_nNonce,
+            cc.block_height,
+            b.prev_block_id,
+            prev.block_hash prev_block_hash,
+            b.block_chain_work,
+            b.block_num_tx,
+            b.block_value_in,
+            b.block_value_out,
+            b.block_total_satoshis,
+            b.block_total_seconds,
+            b.block_satoshi_seconds,
+            b.block_total_ss,
+            b.block_ss_destroyed
+        FROM chain_candidate cc
+        JOIN block b ON (cc.block_id = b.block_id)
+        LEFT JOIN block prev ON (b.prev_block_id = prev.block_id)""")
 
 def drop_block_ss_columns(store):
     """Drop columns that may have been added in error."""
     for c in ['created', 'destroyed']:
         try:
             store.sql("ALTER TABLE block DROP COLUMN block_ss_" + c)
-        except:
+        except Exception:
             store.rollback()
 
 def add_constraint(store, table, name, constraint):
     try:
         store.sql("ALTER TABLE " + table + " ADD CONSTRAINT " + name +
                   " " + constraint)
-    except:
+    except Exception:
         store.log.exception(
             "Failed to create constraint on table " + table + ": " +
             constraint + "; ignoring error.")
@@ -371,28 +400,38 @@ def create_x_cc_block_height(store):
         "CREATE INDEX x_cc_block_height ON chain_candidate (block_height)")
 
 def create_txout_approx(store):
-    store.sql(store.get_ddl('txout_approx'))
+    store.sql("""
+        CREATE VIEW txout_approx AS SELECT
+            txout_id,
+            tx_id,
+            txout_value txout_approx_value
+          FROM txout""")
 
 def add_fk_chain_candidate_block_id(store):
     add_constraint(store, "chain_candidate", "fk1_chain_candidate",
                    "FOREIGN KEY (block_id) REFERENCES block (block_id)")
 
 def create_configvar(store):
-    store.sql(store.get_ddl('configvar'))
+    store.sql("""
+        CREATE TABLE configvar (
+            configvar_name  VARCHAR(100) NOT NULL PRIMARY KEY,
+            configvar_value VARCHAR(255)
+        )""")
 
 def configure(store):
+    # XXX This won't work anymore.
     store.args.binary_type = store.config['binary_type']
     store.configure()
     store.save_config()
 
 def populate_abe_sequences(store):
-    if store.config['sequence_type'] == 'update':
+    if store.config['sql.sequence_type'] == 'update':
         try:
             store.sql("""CREATE TABLE abe_sequences (
                              key VARCHAR(100) NOT NULL PRIMARY KEY,
                              nextid NUMERIC(30)
                          )""")
-        except:
+        except Exception:
             store.rollback()
         for t in ['block', 'tx', 'txin', 'txout', 'pubkey',
                   'chain', 'magic', 'policy']:
@@ -402,7 +441,7 @@ def populate_abe_sequences(store):
             store.sql("UPDATE abe_sequences SET nextid = ? WHERE key = ?"
                       " AND nextid <= ?",
                       (last_id + 1, t, last_id))
-            if store.cursor.rowcount < 1:
+            if store.rowcount() < 1:
                 store.sql("INSERT INTO abe_sequences (key, nextid)"
                           " VALUES (?, ?)", (t, last_id + 1))
 
@@ -457,7 +496,7 @@ def insert_missed_blocks(store):
               JOIN block prev ON (cc.block_id = prev.block_id)
               JOIN block b ON (b.prev_block_id = prev.block_id)
              WHERE b.block_id = ?""", (block_id,))
-        inserted += store.cursor.rowcount
+        inserted += store.rowcount()
         store.commit()  # XXX not sure why PostgreSQL needs this.
     store.log.info("Inserted %d rows into chain_candidate.", inserted)
 
@@ -496,7 +535,7 @@ def repair_missed_blocks(store):
                SET chain_last_block_id = ?
              WHERE chain_id = ?""",
                   (block_id, chain_id))
-        if store.cursor.rowcount == 1:
+        if store.rowcount() == 1:
             store.log.info("Chain %d block %d", chain_id, block_id)
         else:
             raise Exception("Wrong rowcount updating chain " + str(chain_id))
@@ -513,7 +552,7 @@ def repair_missed_blocks(store):
                  WHERE chain_id = ?
                    AND block_id = ?""",
                       (chain_id, block_id))
-            if store.cursor.rowcount != 1:
+            if store.rowcount() != 1:
                 raise Exception("Wrong rowcount updating chain_candidate ("
                                 + str(chain_id) + ", " + str(block_id) + ")")
             count += 1
@@ -566,10 +605,12 @@ def init_block_tx_sums(store):
     # XXX would like to set NOT NULL on block_num_tx.
 
 def config_ddl(store):
+    # XXX This won't work anymore.
     store.configure_ddl_implicit_commit()
     store.save_configvar("ddl_implicit_commit")
 
 def config_create_table_epilogue(store):
+    # XXX This won't work anymore.
     store.configure_create_table_epilogue()
     store.save_configvar("create_table_epilogue")
 
@@ -580,7 +621,7 @@ def rename_abe_sequences_key(store):
         data = store.selectall("""
             SELECT DISTINCT key, nextid
               FROM abe_sequences""")
-    except:
+    except Exception:
         store.rollback()
         return
     store.log.info("copying sequence positions: %s", data)
@@ -606,7 +647,7 @@ def add_datadir_id(store):
           FROM abe_tmp_datadir""")
     try:
         store.ddl("DROP TABLE datadir")
-    except:
+    except Exception:
         store.rollback()  # Assume already dropped.
 
     store.ddl("""CREATE TABLE datadir (
@@ -629,6 +670,7 @@ def drop_tmp_datadir(store):
     store.ddl("DROP TABLE abe_tmp_datadir")
 
 def config_clob(store):
+    # This won't work anymore.
     store.configure_max_varchar()
     store.save_configvar("max_varchar")
     store.configure_clob_type()
@@ -649,7 +691,7 @@ def clear_bad_addresses(store):
                 UPDATE txout SET pubkey_id = NULL
                  WHERE tx_id = ? AND txout_pos = 1 AND pubkey_id IS NOT NULL""",
                       (row[0],))
-            if store.cursor.rowcount:
+            if store.rowcount():
                 store.log.info("Cleared txout %s", tx_hash)
 
 def find_namecoin_addresses(store):
@@ -718,7 +760,7 @@ def set_netfee_pubkey_id(store):
          WHERE txout_scriptPubKey = ?""",
               (DataStore.NULL_PUBKEY_ID,
                store.binin(DataStore.SCRIPT_NETWORK_FEE)))
-    store.log.info("...rows updated: %d", store.cursor.rowcount)
+    store.log.info("...rows updated: %d", store.rowcount())
 
 def adjust_block_total_satoshis(store):
     store.log.info("Adjusting value outstanding for lost coins.")
@@ -768,10 +810,12 @@ def adjust_block_total_satoshis(store):
         store.log.info("Adjusted %d of %d blocks.", count, len(block_ids))
 
 def config_limit_style(store):
+    # XXX This won't work anymore.
     store.configure_limit_style()
     store.save_configvar("limit_style")
 
 def config_sequence_type(store):
+    # XXX This won't work anymore.
     if store.config['sequence_type'] != "update":
         return
     store.configure_sequence_type()
@@ -779,7 +823,7 @@ def config_sequence_type(store):
         store.log.info("Creating native sequences.")
         for name in ['magic', 'policy', 'chain', 'datadir',
                      'tx', 'txout', 'pubkey', 'txin', 'block']:
-            store.drop_sequence_if_exists(name)
+            store.get_db().drop_sequence_if_exists(name)
             store.create_sequence(name)
     store.save_configvar("sequence_type")
 
@@ -839,13 +883,13 @@ def add_keep_scriptsig(store):
     store.save_configvar("keep_scriptsig")
 
 def drop_satoshi_seconds_destroyed(store):
-    store.drop_column_if_exists("block_txin", "satoshi_seconds_destroyed")
+    store.get_db().drop_column_if_exists("block_txin", "satoshi_seconds_destroyed")
 
 def widen_blkfile_number(store):
     data = store.selectall("""
         SELECT datadir_id, dirname, blkfile_number, blkfile_offset, chain_id
           FROM abe_tmp_datadir""")
-    store.drop_table_if_exists("datadir")
+    store.get_db().drop_table_if_exists("datadir")
 
     store.ddl("""CREATE TABLE datadir (
         datadir_id  NUMERIC(10) NOT NULL PRIMARY KEY,
@@ -859,6 +903,153 @@ def widen_blkfile_number(store):
             INSERT INTO datadir (
                 datadir_id, dirname, blkfile_number, blkfile_offset, chain_id
             ) VALUES (?, ?, ?, ?, ?)""", row)
+
+def add_datadir_loader(store):
+    store.sql("ALTER TABLE datadir ADD datadir_loader VARCHAR(100) NULL")
+
+def add_chain_policy(store):
+    store.ddl("ALTER TABLE chain ADD chain_policy VARCHAR(255)")
+
+def populate_chain_policy(store):
+    store.sql("UPDATE chain SET chain_policy = chain_name")
+
+def add_chain_magic(store):
+    store.ddl("ALTER TABLE chain ADD chain_magic BINARY(4)")
+
+def populate_chain_magic(store):
+    for chain_id, magic in store.selectall("""
+        SELECT chain.chain_id, magic.magic
+          FROM chain
+          JOIN magic ON (chain.magic_id = magic.magic_id)"""):
+        store.sql("UPDATE chain SET chain_magic = ? WHERE chain_id = ?",
+                  (magic, chain_id))
+
+def drop_policy(store):
+    for stmt in [
+        "ALTER TABLE chain DROP COLUMN policy_id",
+        "DROP TABLE policy"]:
+        try:
+            store.ddl(stmt)
+        except store.dbmodule.DatabaseError, e:
+            store.log.warning("Cleanup failed, ignoring: %s", stmt)
+
+def drop_magic(store):
+    for stmt in [
+        "ALTER TABLE chain DROP COLUMN magic_id",
+        "DROP TABLE magic"]:
+        try:
+            store.ddl(stmt)
+        except store.dbmodule.DatabaseError, e:
+            store.log.warning("Cleanup failed, ignoring: %s", stmt)
+
+def add_chain_decimals(store):
+    store.ddl("ALTER TABLE chain ADD chain_decimals NUMERIC(2)")
+
+def insert_chain_novacoin(store):
+    import Chain
+    try:
+        store.insert_chain(Chain.create("NovaCoin"))
+    except Exception:
+        pass
+
+def txin_detail_multisig(store):
+    store.get_db().drop_view_if_exists('txin_detail')
+    store.ddl("""
+        CREATE VIEW txin_detail AS SELECT
+            cc.chain_id,
+            cc.in_longest,
+            cc.block_id,
+            b.block_hash,
+            b.block_height,
+            block_tx.tx_pos,
+            tx.tx_id,
+            tx.tx_hash,
+            tx.tx_lockTime,
+            tx.tx_version,
+            tx.tx_size,
+            txin.txin_id,
+            txin.txin_pos,
+            txin.txout_id prevout_id""" + (""",
+            txin.txin_scriptSig,
+            txin.txin_sequence""" if store.keep_scriptsig else """,
+            NULL txin_scriptSig,
+            NULL txin_sequence""") + """,
+            prevout.txout_value txin_value,
+            prevout.txout_scriptPubKey txin_scriptPubKey,
+            pubkey.pubkey_id,
+            pubkey.pubkey_hash,
+            pubkey.pubkey
+          FROM chain_candidate cc
+          JOIN block b ON (cc.block_id = b.block_id)
+          JOIN block_tx ON (b.block_id = block_tx.block_id)
+          JOIN tx    ON (tx.tx_id = block_tx.tx_id)
+          JOIN txin  ON (tx.tx_id = txin.tx_id)
+          LEFT JOIN txout prevout ON (txin.txout_id = prevout.txout_id)
+          LEFT JOIN pubkey
+              ON (prevout.pubkey_id = pubkey.pubkey_id)""")
+
+def add_chain_script_addr_vers(store):
+    store.ddl("ALTER TABLE chain ADD chain_script_addr_vers VARBINARY(100) NULL")
+
+def populate_chain_script_addr_vers(store):
+    def update(addr_vers, script_vers):
+        store.sql("UPDATE chain SET chain_script_addr_vers=? WHERE chain_address_version=?",
+                  (store.binin(script_vers), store.binin(addr_vers)))
+    update('\x00', '\x05')
+    update('\x6f', '\xc4')
+
+def create_multisig_pubkey(store):
+    store.ddl("""
+        CREATE TABLE multisig_pubkey (
+            multisig_id   NUMERIC(26) NOT NULL,
+            pubkey_id     NUMERIC(26) NOT NULL,
+            PRIMARY KEY (multisig_id, pubkey_id),
+            FOREIGN KEY (multisig_id) REFERENCES pubkey (pubkey_id),
+            FOREIGN KEY (pubkey_id) REFERENCES pubkey (pubkey_id)
+        )""")
+
+def create_x_multisig_pubkey_multisig(store):
+    store.ddl("CREATE INDEX x_multisig_pubkey_pubkey ON multisig_pubkey (pubkey_id)")
+
+def update_chain_policy(store):
+    store.sql("""
+        UPDATE chain
+           SET chain_policy = 'Sha256Chain'
+         WHERE chain_policy = chain_name
+           AND chain_name IN ('Weeds', 'BeerTokens', 'SolidCoin', 'ScTestnet', 'Worldcoin', 'Anoncoin')""")
+
+def populate_multisig_pubkey(store):
+    store.init_chains()
+    store.log.info("Finding new address types.")
+
+    rows = store.selectall("""
+        SELECT txout_id, chain_id, txout_scriptPubKey
+          FROM txout_detail
+         WHERE pubkey_id IS NULL""")
+
+    count = 0
+    for txout_id, chain_id, db_script in rows:
+        script = store.binout(db_script)
+        pubkey_id = store.script_to_pubkey_id(store.get_chain_by_id(chain_id), script)
+        if pubkey_id > 0:
+            store.sql("UPDATE txout SET pubkey_id = ? WHERE txout_id = ?",
+                      (pubkey_id, txout_id))
+            count += 1
+    store.commit()
+    store.log.info("Found %d", count)
+
+sql_arg_names = (
+    'binary_type', 'max_varchar', 'ddl_implicit_commit',
+    'create_table_epilogue', 'sequence_type', 'limit_style',
+    'int_type', 'clob_type')
+
+def abstract_sql(store):
+    for name in sql_arg_names:
+        store.sql("""
+            UPDATE configvar
+               SET configvar_name = ?
+             WHERE configvar_name = ?""", ('sql.' + name, name))
+    store.commit()
 
 upgrades = [
     ('6',    add_block_value_in),
@@ -930,6 +1121,7 @@ upgrades = [
     ('Abe26.1', init_block_satoshi_seconds), # 3-10 minutes
     ('Abe27',   config_limit_style),     # Fast
     ('Abe28',   config_sequence_type),   # Fast
+    # Should be okay back to here.
     ('Abe29',   add_search_block_id),    # Seconds
     ('Abe29.1', populate_search_block_id), # 1-2 minutes if using firstbits
     ('Abe29.2', add_fk_search_block_id), # Seconds
@@ -940,10 +1132,34 @@ upgrades = [
     ('Abe32',   save_datadir),           # Fast
     ('Abe32.1', widen_blkfile_number),   # Fast
     ('Abe32.2', drop_tmp_datadir),       # Fast
-    ('Abe33', None)
+    ('Abe33',   add_datadir_loader),     # Fast
+    ('Abe34',   noop),                   # Fast
+    ('Abe35',   add_chain_policy),       # Fast
+    ('Abe35.1', populate_chain_policy),  # Fast
+    ('Abe35.2', add_chain_magic),        # Fast
+    ('Abe35.3', populate_chain_magic),   # Fast
+    ('Abe35.4', drop_policy),            # Fast
+    ('Abe35.5', drop_magic),             # Fast
+    ('Abe36',   add_chain_decimals),     # Fast
+    ('Abe36.1', insert_chain_novacoin),  # Fast
+    ('Abe37',   txin_detail_multisig),   # Fast
+    ('Abe37.1', add_chain_script_addr_vers), # Fast
+    ('Abe37.2', populate_chain_script_addr_vers), # Fast
+    ('Abe37.3', create_multisig_pubkey), # Fast
+    ('Abe37.4', create_x_multisig_pubkey_multisig), # Fast
+    ('Abe37.5', update_chain_policy),    # Fast
+    ('Abe37.6', populate_multisig_pubkey), # Minutes-hours
+    ('Abe38',   abstract_sql),           # Fast
+    ('Abe39', None)
 ]
 
 def upgrade_schema(store):
+    if 'sql.binary_type' not in store.config:
+        for name in sql_arg_names:
+            store.config['sql.' + name] = store.config[name]
+            del store.config[name]
+        store.init_sql()
+
     run_upgrades(store, upgrades)
     sv = store.config['schema_version']
     curr = upgrades[-1][0]
