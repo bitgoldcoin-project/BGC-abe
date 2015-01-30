@@ -24,11 +24,11 @@ quit
 3. Install Scrypt Crypto Module
 ------------------------------------
 
-apt-get install python-all-dev
+sudo apt-get install python-all-dev
 
 cd litecoin_scrypt
 
-python setup.py install
+sudo python setup.py install
 
 
 4. Install & Run 
