@@ -41,12 +41,33 @@ python -m Abe.abe --config abe-bgc.conf --commit-bytes 100000 --no-serve
 
 python -m Abe.abe --config abe-bgc.conf
 
+5. Modify some field in abe-bgc.conf
+-------------------------------------
 
-5. Connect from Your Internet Browser
+default-loader = blkfile
+
+dbtype MySQLdb
+
+connect-args {"user":"%USERNAME%","db":"abe","passwd":"%PASSWORD%"}
+#Change to YOUR DB ACCOUNT 
+
+upgrade
+
+port 12345
+#Change Port
+
+host 127.0.0.1 
+#Change IP
+
+datadir = /home/%USERNAME%/.bitgoldcoin 
+#Add your Unix Account Name
+
+
+6. Connect from Your Internet Browser
 -----------------------------------------
 
 http://localhost:12345
 
 
-6. Enjoy Your Life!!
+7. Enjoy Your Life!!
 ----------------------
