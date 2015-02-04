@@ -1,6 +1,4 @@
-"Step by Step" Install Guide -> See EASYINSTALLGUIDE.md 
-=======================================================
-
+If you wanna see a "Step by Step" Install Guide, please follow "EASYINSTALLGUIDE.md" 
 
 Abe: a free block chain browser for Bitcoin-based currencies.
 https://github.com/bitcoin-abe/bitcoin-abe
