@@ -1,9 +1,6 @@
 If you wanna see a "Step by Step" Install Guide, please follow "EASYINSTALLGUIDE.md" 
 
-
-
-
-
+Todo : Research about "How to use Abe API?"
 
 
 Abe: a free block chain browser for Bitcoin-based currencies.
