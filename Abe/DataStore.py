@@ -60,31 +60,31 @@ CONFIG_DEFAULTS = {
 WORK_BITS = 304  # XXX more than necessary.
 
 CHAIN_CONFIG = [
-    {"chain":"Bitcoin"},
-    {"chain":"Testnet"},
-    {"chain":"Namecoin"},
-    {"chain":"Weeds", "policy":"Sha256Chain",
-     "code3":"WDS", "address_version":"\xf3", "magic":"\xf8\xbf\xb5\xda"},
-    {"chain":"BeerTokens", "policy":"Sha256Chain",
-     "code3":"BER", "address_version":"\xf2", "magic":"\xf7\xbf\xb5\xdb"},
-    {"chain":"SolidCoin", "policy":"Sha256Chain",
-     "code3":"SCN", "address_version":"\x7d", "magic":"\xde\xad\xba\xbe"},
-    {"chain":"ScTestnet", "policy":"Sha256Chain",
-     "code3":"SC0", "address_version":"\x6f", "magic":"\xca\xfe\xba\xbe"},
-    {"chain":"Bitgoldcoin", "policy":"LtcScryptChain",
-     "code3":"BGC", "address_version":"\x38", "magic":"\xbf\x0c\x3a\xca"},
-    {"chain":"Worldcoin", "policy":"Sha256Chain",
-     "code3":"WDC", "address_version":"\x49", "magic":"\xfb\xc0\xb6\xdb"},
-    {"chain":"NovaCoin"},
-    {"chain":"CryptoCash"},
-    {"chain":"Anoncoin", "policy":"Sha256Chain",
-     "code3":"ANC", "address_version":"\x17", "magic":"\xFA\xCA\xBA\xDA" },
-    {"chain":"Hirocoin"},
-    {"chain":"Bitleu"},
-    {"chain":"Maxcoin"},
-    {"chain":"Darkcoin"},
-    {"chain":"BlackCoin"},
-    {"chain":"Unbreakablecoin"},
+    # {"chain":"Bitcoin"},
+    # {"chain":"Testnet"},
+    # {"chain":"Namecoin"},
+    # {"chain":"Weeds", "policy":"Sha256Chain",
+    #  "code3":"WDS", "address_version":"\xf3", "magic":"\xf8\xbf\xb5\xda"},
+    # {"chain":"BeerTokens", "policy":"Sha256Chain",
+    #  "code3":"BER", "address_version":"\xf2", "magic":"\xf7\xbf\xb5\xdb"},
+    # {"chain":"SolidCoin", "policy":"Sha256Chain",
+    #  "code3":"SCN", "address_version":"\x7d", "magic":"\xde\xad\xba\xbe"},
+    # {"chain":"ScTestnet", "policy":"Sha256Chain",
+    #  "code3":"SC0", "address_version":"\x6f", "magic":"\xca\xfe\xba\xbe"},
+     {"chain":"Bitgoldcoin", "policy":"Sha256Chain",
+      "code3":"BGC", "address_version":"\x26", "magic":"\xbf\x0c\x3a\xca"},
+    # {"chain":"Worldcoin", "policy":"Sha256Chain",
+    #  "code3":"WDC", "address_version":"\x49", "magic":"\xfb\xc0\xb6\xdb"},
+    # {"chain":"NovaCoin"},
+    # {"chain":"CryptoCash"},
+    # {"chain":"Anoncoin", "policy":"Sha256Chain",
+    #  "code3":"ANC", "address_version":"\x17", "magic":"\xFA\xCA\xBA\xDA" },
+    # {"chain":"Hirocoin"},
+    # {"chain":"Bitleu"},
+    # {"chain":"Maxcoin"},
+    # {"chain":"Darkcoin"},
+    # {"chain":"BlackCoin"},
+    # {"chain":"Unbreakablecoin"},
     #{"chain":"",
     # "code3":"", "address_version":"\x", "magic":""},
     ]
@@ -1071,12 +1071,12 @@ store._ddl['txout_approx'],
         block_id = int(store.new_id("block"))
         b['block_id'] = block_id
 
-        if chain is not None:
+        #if chain is not None:
             # Verify Merkle root.
-            if b['hashMerkleRoot'] != chain.merkle_root(tx_hash_array):
-                raise MerkleRootMismatch(b['hash'], tx_hash_array)
-
+            #if b['hashMerkleRoot'] != chain.merkle_root(tx_hash_array):
+                #raise MerkleRootMismatch(b['hash'], tx_hash_array)
         # Look for the parent block.
+        
         hashPrev = b['hashPrev']
         if chain is None:
             # XXX No longer used.
