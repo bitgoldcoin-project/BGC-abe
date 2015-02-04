@@ -5,11 +5,17 @@ Easy Guide "How to Install ABE For BGC"
 1. install Req. programs
 ---------------------------
 
+1) MysqlDB
 sudo apt-get install mysql-client mysql-server python-mysqldb python-crypto
+
+2) PostgreSQLDB
+sudo apt-get install python2.7 python-crypto postgresql-8.4 python-psycopg2
 
 
 2. Create Database 
 ------------------
+
+1) Mysql
 
 mysql -u root -p
 
@@ -20,6 +26,20 @@ CREATE USER '%USERNAME%'@'localhost' IDENTIFIED BY '%PASSWORD%';
 grant all on abe.* to %USERNAME%;
 
 quit
+
+2) PostgreSQL
+
+sudo -u postgres createdb abe
+sudo -u postgres createuser %USERNAME%
+
+Add the following line to /etc/postgresql/*/main/pg_hba.conf:
+
+    local abe %USERNAME% ident
+
+Issue:
+
+    sudo service postgresql reload
+
 
 3. Install Scrypt Crypto Module
 ------------------------------------
@@ -35,10 +55,14 @@ sudo python setup.py install
 
 default-loader = blkfile
 
-dbtype MySQLdb
-
+1) MYSQL DB
+dbtype MySQLdb 
 connect-args {"user":"%USERNAME%","db":"abe","passwd":"%PASSWORD%"}
 (Change to YOUR DB ACCOUNT)
+
+2) PostgreSQL DB
+dbtype psycopg2
+connect-args {"database":"abe"}
 
 upgrade
 
