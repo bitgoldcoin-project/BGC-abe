@@ -1,6 +1,4 @@
-If you wanna see a "Step by Step" Install Guide, please follow below link.
-
-    https://github.com/bitgoldcoin-project/BGC-abe/blob/master/EASYINSTALLGUIDE.md 
+If you wanna see a "Step by Step" Install Guide, please follow this link. : https://github.com/bitgoldcoin-project/BGC-abe/blob/master/EASYINSTALLGUIDE.md 
 
 
 Todo : Research about "How to use Abe API?"
