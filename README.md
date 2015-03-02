@@ -1,9 +1,5 @@
 If you wanna see a "Step by Step" Install Guide, please follow this link. : https://github.com/bitgoldcoin-project/BGC-abe/blob/master/EASYINSTALLGUIDE.md 
 
-
-Todo : Research about "How to use Abe API?"
-
-
 Abe: a free block chain browser for Bitcoin-based currencies.
 https://github.com/bitcoin-abe/bitcoin-abe
 
