@@ -72,6 +72,7 @@ Issue:
 5. Install & Run 
 ------------------
 
+    
     sudo python setup.py install
     python -m Abe.abe --config abe-bgc.conf --commit-bytes 100000 --no-serve 
     python -m Abe.abe --config abe-bgc.conf
@@ -90,13 +91,14 @@ To "http://localhost:12345"
 
 2. All you need in nginx.conf, if running on localhost, is:
 
-server {
+        server {
         listen  80;
         server_name some.domain.org;
+        
         location / {
             proxy_pass  http://127.0.0.1:8081; 
-        }
-}
+            }
+            }
 
 8. Enjoy your Life!!!
 ---------------------
