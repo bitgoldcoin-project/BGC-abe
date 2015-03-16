@@ -83,5 +83,20 @@ Issue:
 To "http://localhost:12345"
 
 
-7. Enjoy Your Life!!
-----------------------
+7. Service With Nginx Proxy.
+-----------------------------
+
+1. "apt-get install nginx" or "pkg_add -r nginx"
+
+2. All you need in nginx.conf, if running on localhost, is:
+
+server {
+        listen  80;
+        server_name some.domain.org;
+        location / {
+            proxy_pass  http://127.0.0.1:8081; 
+        }
+}
+
+8. Enjoy your Life!!!
+---------------------
