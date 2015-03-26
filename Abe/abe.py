@@ -1738,8 +1738,7 @@ class Abe:
         else:
             full = base + link
 
-        return ['<p class="shortlink">Short Link: <a href="',
-                page['dotdot'], link, '">', full, '</a></p>\n']
+        return ['<p class="shortlink">Short Link: <a href="http://block.bgc-e.com/', link, '">', full, '</a></p>\n']
 
     def fix_path_info(abe, env):
         ret = True
