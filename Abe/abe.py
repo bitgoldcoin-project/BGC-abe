@@ -41,7 +41,7 @@ __version__ = version.__version__
 
 ABE_APPNAME = "Abe"
 ABE_VERSION = __version__
-ABE_URL = 'https://github.com/bitcoin-abe/bitcoin-abe'
+ABE_URL = 'https://github.com/bitgoldcoin-project/BGC-abe'
 
 COPYRIGHT_YEARS = '2011'
 COPYRIGHT = "Abe developers"
@@ -1727,7 +1727,7 @@ class Abe:
         return len(v) == 1
 
     def short_link(abe, page, link):
-        base = abe.base_url
+        base = "http://block.bgc-e.com/"
         if base is None:
             env = page['env'].copy()
             env['SCRIPT_NAME'] = posixpath.normpath(
