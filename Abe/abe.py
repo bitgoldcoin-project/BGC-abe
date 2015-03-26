@@ -57,7 +57,7 @@ EPOCH1970 = calendar.timegm(TIME1970)
 # Configurable templates may contain either.  HTML seems better supported
 # under Internet Explorer.
 DEFAULT_CONTENT_TYPE = "text/html; charset=utf-8"
-DEFAULT_HOMEPAGE = "chains";
+DEFAULT_HOMEPAGE = "chain/Bitgoldcoin";
 DEFAULT_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
