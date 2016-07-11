@@ -1,0 +1,9 @@
+﻿User-agent: *
+Disallow: /chain/
+Disallow: /block/
+Disallow: /tx/
+Disallow: /address/
+Disallow: /unspent/
+Disallow: /b/
+Disallow: /t/
+Disallow: /a/
