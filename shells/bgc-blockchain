@@ -1,0 +1,125 @@
+#!/bin/sh
+# Provides:          LEE SEOGNAHN
+
+# service description
+DESCRIPTION="BGC Block Explorer"
+
+daemon_name=bgc-blockchain
+daemon_apps=
+daemon_args="-m Abe.abe --config /home/odinsoft/ubsvc5/solution/bitgold/bgc-blockchain/src/bgc-blockchain.conf"
+
+# Do NOT "set -e"
+
+# path to application
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# execution name
+DAEMON=$(which python)
+PIDFILE=/var/run/$daemon_name.pid
+USER=odinsoft
+
+# process id
+DAEMON_PID=$(ps -auxf | grep ${daemon_name}.conf | grep -v 'grep ' | awk '{print $2}')
+
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || exit 0
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{       
+        log_daemon_msg "Starting ${DESCRIPTION}"
+
+        if [ -z "${DAEMON_PID}" ]; 
+        then
+
+            ${DAEMON} ${daemon_apps} ${daemon_args} > /dev/null 2>&1 &
+            log_end_msg 0
+
+        else
+
+            log_daemon_msg "${daemon_name} is running"
+            log_end_msg 1
+
+        fi
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+        log_daemon_msg "Stopping ${DESCRIPTION}"
+
+        if [ -n "${DAEMON_PID}" ]; then
+
+            kill -9 ${DAEMON_PID}
+
+            sleep 1
+
+            log_end_msg 0
+
+        else
+
+            log_daemon_msg "${daemon_name} is not running"
+            log_end_msg 1
+
+        fi
+}
+
+#
+# Function that status the daemon/service
+#
+do_status()
+{
+ 
+        if [ -n "${DAEMON_PID}" ]; then
+            
+            log_daemon_msg "${daemon_name} is running"
+            log_end_msg 0
+
+        else
+        
+            log_daemon_msg "${daemon_name} is not running"
+            log_end_msg 0
+
+        fi
+}
+
+
+case "$1" in
+
+        start)
+            do_start
+            ;;
+
+        stop)
+            
+            do_stop
+            ;;
+
+        restart)
+            
+            "$0" stop
+            "$0" start
+    	    ;;
+
+        status)
+
+            do_status
+	        ;;
+
+        *)
+            echo "Usage: $daemon_name {start|stop|restart||status}" >&2
+            ;;
+esac
+
+exit 0
